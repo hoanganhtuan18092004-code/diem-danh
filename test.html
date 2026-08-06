@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Điểm danh & Học phí</title>
+<style>
+  :root{
+    --cream:#F6F3EC;
+    --cream-deep:#FBF1E1;
+    --card:#FFFFFF;
+    --ink:#20242C;
+    --ink-soft:#7A7F8A;
+    --ink-faint:#A7ACB6;
+    --line:#ECE7DC;
+    --navy:#171A21;
+    --teal:#0E9C8C;
+    --teal-bg:#DEF5F0;
+    --amber:#B97A0E;
+    --amber-bg:#FBF0D6;
+    --blue:#2B63E0;
+    --blue-bg:#DCE7FE;
+    --red:#DC3A3A;
+    --red-bg:#FBE4E4;
+    --green:#12A66B;
+    --green-deep:#0C8E5B;
+    --orange:#EFA95A;
+    --shadow: 0 1px 2px rgba(23,26,33,0.05), 0 10px 24px -8px rgba(23,26,33,0.10);
+    --radius: 20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  :root{ --shell-max:100%; }
+  @media (min-width:760px){ :root{ --shell-max:760px; } }
+  @media (min-width:1100px){ :root{ --shell-max:1040px; } }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  #app-shell{
+    max-width:var(--shell-max);
+    margin:0 auto;
+    min-height:100dvh;
+    min-height:100vh;
+    background:var(--cream);
+    position:relative;
+    padding-bottom:90px;
+  }
+  @media (min-width:760px){
+    #app-shell{ border-left:1px solid var(--line); border-right:1px solid var(--line); }
+  }
+  @media (min-width:760px){
+    .grid-content{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; align-items:start; }
+    .grid-content .student-card, .grid-content .feelist-row{ margin-bottom:0; }
+  }
+  .fs-topbar, .fs-page{ max-width:600px; margin-left:auto; margin-right:auto; }
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 20px 12px;
+  }
+  .topbar h1{
+    font-size:22px;margin:0;display:flex;align-items:center;gap:10px;font-weight:800;
+  }
+  .count-badge{
+    background:#EFEBE0;color:var(--ink-soft);font-size:13px;font-weight:700;
+    padding:3px 10px;border-radius:20px;
+  }
+  .btn{
+    border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+    border-radius:14px;padding:11px 16px;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(0.96);}
+  .btn-dark{background:var(--navy);color:#fff;}
+  .btn-outline{background:#fff;color:var(--ink);border:1px solid var(--line);}
+  .btn-block{width:100%;justify-content:center;}
+  .btn-sm{padding:9px 12px;font-size:13px;border-radius:12px;}
+  .btn-danger-outline{background:var(--red-bg);color:var(--red);}
+  .btn-green{background:linear-gradient(135deg,var(--green),var(--green-deep));color:#fff;box-shadow:0 8px 20px -6px rgba(14,166,107,0.55);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);}
+  .action-row{display:flex;gap:10px;padding:0 20px 8px;flex-wrap:wrap;}
+
+  .content{padding:4px 20px 24px;}
+  .section-gap{height:14px;}
+
+  .student-card{
+    background:var(--card);border-radius:var(--radius);padding:20px;
+    box-shadow:var(--shadow);margin-bottom:16px;cursor:pointer;
+    border:1px solid var(--line);
+  }
+  .sc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+  .sc-name{font-size:19px;font-weight:800;}
+  .chip{font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;}
+  .chip-teal{background:var(--teal-bg);color:var(--teal);}
+  .chip-amber{background:var(--amber-bg);color:var(--amber);}
+  .chip-blue{background:var(--blue-bg);color:var(--blue);}
+  .chip-red{background:var(--red-bg);color:var(--red);}
+  .chip-gray{background:#EFEBE0;color:var(--ink-soft);}
+  .sc-row{display:flex;align-items:center;gap:9px;color:var(--ink-soft);font-size:14.5px;margin-bottom:9px;}
+  .sc-row b{color:var(--ink);font-weight:700;}
+  .sc-row.warn{color:var(--amber);}
+  .sc-row.warn b{color:var(--amber);}
+  .sc-row svg{flex:0 0 auto;color:var(--ink-faint);}
+  .sc-doclabel{display:flex;align-items:center;gap:9px;color:var(--ink-soft);font-size:14.5px;margin:10px 0 6px;}
+  .doc-line{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink-soft);margin-bottom:8px;padding-left:27px;flex-wrap:wrap;}
+  .doc-price{text-decoration:underline;text-decoration-color:var(--ink-faint);color:var(--ink);font-weight:600;}
+  .doc-name{color:var(--ink-soft);}
+  .sc-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+  .sc-actions .btn{flex:1;justify-content:center;}
+  .icon-btn{width:40px;flex:0 0 40px !important;padding:0 !important;background:var(--red-bg);color:var(--red);}
+  .empty-doc{font-size:13.5px;color:var(--ink-faint);padding-left:27px;font-style:italic;}
+
+  .empty-state{
+    text-align:center;padding:60px 20px;color:var(--ink-soft);
+  }
+  .empty-state .icon-wrap{font-size:44px;margin-bottom:12px;}
+  .empty-state h3{margin:0 0 6px;color:var(--ink);}
+  .empty-state p{margin:0 0 18px;font-size:14px;}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .stat-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .stat-card .val{font-size:22px;font-weight:800;}
+  .stat-card .lab{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .stat-card.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;}
+
+  .feelist-row{
+    background:var(--card);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border:1px solid var(--line);
+  }
+  .feelist-row .name{font-weight:700;font-size:15.5px;}
+  .feelist-row .sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
+  .feelist-row .amt{font-weight:800;font-size:15.5px;}
+  .feelist-row .amt.zero{color:var(--ink-faint);font-weight:600;}
+  .feelist-row .amt.due{color:var(--amber);}
+
+  .bottom-nav{
+    position:fixed;left:50%;bottom:0;transform:translateX(-50%);
+    width:100%;max-width:var(--shell-max);
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:9px 6px calc(9px + env(safe-area-inset-bottom));
+    z-index:20;
+  }
+  .nav-btn{
+    background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+    color:var(--ink-faint);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+    padding:4px 8px;border-radius:10px;
+  }
+  .nav-btn.active{color:var(--teal);}
+
+  .fs-topbar{display:flex;align-items:center;gap:10px;padding:18px 16px 6px;}
+  .fs-back{background:#fff;border:1px solid var(--line);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:0 0 auto;}
+  .fs-topbar .fs-toptitle{font-weight:800;font-size:16px;flex:1;}
+  .fs-page{padding:6px 16px 30px;}
+  .fs-header-card{
+    position:relative;overflow:hidden;
+    background:var(--cream-deep);border-radius:22px;padding:22px 20px;margin-bottom:18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .fs-header-card::after{
+    content:"";position:absolute;right:-30px;top:-40px;width:110px;height:110px;
+    background:var(--orange);opacity:.55;border-radius:50%;
+  }
+  .fs-emoji{font-size:34px;z-index:1;background:#fff;width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);flex:0 0 auto;}
+  .fs-h1{font-size:19px;font-weight:800;z-index:1;}
+  .fs-sub{font-size:13px;color:var(--ink-soft);margin-top:3px;z-index:1;}
+  .fs-section{margin-bottom:20px;}
+  .fs-section-title{display:flex;align-items:center;justify-content:space-between;font-weight:800;font-size:13.5px;color:var(--amber);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;}
+  .round-plus{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
+  .fs-card{background:#fff;border-radius:16px;padding:15px 17px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .fs-fee-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .fs-fee-row:last-child{margin-bottom:0;}
+  .fs-fee-row .left{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:14.5px;}
+  .fs-fee-amount{font-weight:800;color:var(--red);font-size:16px;}
+  .fs-row-remove{background:none;border:none;color:var(--ink-faint);cursor:pointer;padding:4px;}
+  .chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .date-chip{
+    background:var(--amber-bg);color:var(--amber);border-radius:12px;padding:7px 10px;
+    display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+  }
+  .date-chip .dc-slot{font-weight:500;opacity:.85;font-size:11px;}
+  .date-chip button{background:none;border:none;color:var(--amber);cursor:pointer;font-weight:800;padding:0;line-height:1;font-size:13px;}
+  .fs-empty{font-size:13.5px;color:var(--ink-faint);font-style:italic;padding:6px 2px;}
+  .fs-total{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(120deg,var(--green),var(--green-deep));color:#fff;
+    border-radius:16px;padding:18px 20px;font-weight:700;font-size:15px;margin-bottom:18px;
+    box-shadow:0 10px 24px -8px rgba(14,166,107,0.55);
+  }
+  .fs-total b{font-size:22px;font-weight:800;}
+  .fs-qr-card{text-align:center;padding:20px;margin-bottom:16px;}
+  .fs-qr-card img{width:190px;height:190px;border-radius:12px;border:1px solid var(--line);margin-bottom:14px;background:#fff;}
+  .bank-row{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 2px;border-top:1px dashed var(--line);text-align:left;}
+  .bank-row:first-of-type{border-top:none;}
+  .bank-row .k{color:var(--ink-soft);}
+  .bank-row .v{font-weight:700;}
+  .fs-empty-total{text-align:center;padding:30px 10px;color:var(--ink-soft);}
+  .history-row{display:flex;gap:10px;margin-top:16px;}
+  .history-row .btn{flex:1;justify-content:center;}
+
+  #modal-backdrop{
+    position:fixed;inset:0;background:rgba(20,22,28,0.5);display:none;
+    align-items:flex-end;justify-content:center;z-index:100;
+  }
+  #modal-backdrop.show{display:flex;}
+  @media (min-width:600px){ #modal-backdrop{align-items:center;} }
+  .modal-box{
+    background:#fff;width:100%;max-width:480px;border-radius:22px 22px 0 0;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    max-height:88vh;overflow-y:auto;animation:slideup .18s ease;
+  }
+  @media (min-width:600px){ .modal-box{border-radius:22px;} }
+  @keyframes slideup{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-title{font-size:18px;font-weight:800;margin:0 0 16px;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title button{background:#F2EFE7;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;}
+  .form-field{margin-bottom:14px;}
+  .form-field label{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;}
+  .form-field input[type=text],.form-field input[type=number],.form-field input[type=date],.form-field select,.form-field textarea{
+    width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:15px;font-family:inherit;background:#FAF8F3;
+  }
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .slot-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+  .slot-opt{border:1px solid var(--line);background:#FAF8F3;padding:9px 12px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink-soft);}
+  .slot-opt.sel{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .checkbox-row{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:4px;}
+  .modal-actions{display:flex;gap:10px;margin-top:6px;}
+  .modal-actions .btn{flex:1;justify-content:center;}
+  .confirm-text{font-size:14.5px;color:var(--ink-soft);margin-bottom:18px;line-height:1.5;}
+
+  .hist-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .hist-item:last-child{border-bottom:none;}
+  .hist-item .hd{font-weight:700;font-size:14.5px;}
+  .hist-item .hs{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .hist-item .hv{font-weight:800;font-size:14.5px;}
+
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-head .m{font-weight:800;font-size:17px;}
+  .cal-nav{background:#fff;border:1px solid var(--line);width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;}
+  .cal-dow{font-size:11.5px;color:var(--ink-faint);font-weight:700;padding-bottom:4px;}
+  .cal-cell{aspect-ratio:1/1;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;position:relative;color:var(--ink);}
+  .cal-cell.dim{opacity:.35;cursor:default;}
+  .cal-cell.today{border:2px solid var(--teal);}
+  .cal-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:3px;}
+  .cal-dot.sched{background:var(--blue);}
+
+  #toast{
+    position:fixed;left:50%;bottom:100px;transform:translate(-50%,20px);
+    background:var(--navy);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;
+    opacity:0;pointer-events:none;transition:all .25s ease;z-index:200;box-shadow:var(--shadow);
+    max-width:90%;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+
+  .kv-mini{font-size:12.5px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div id="app-shell">
+  <div id="view-root"></div>
+  <div class="bottom-nav" id="bottom-nav"></div>
+</div>
+<div id="modal-backdrop"><div class="modal-box" id="modal-box"></div></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+const ICON_PATHS = {
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z"/>',
+  trash:'<path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',
+  back:'<path d="M15 18l-6-6 6-6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  card:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20V4H6.5A2.5 2.5 0 004 6.5v13z"/><path d="M4 19.5V6.5"/>',
+  coin:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.3 1.3-2.2 3-2.2s3 .9 3 2c0 2.5-6 1.3-6 3.8 0 1.3 1.3 2.2 3 2.2s3-.9 3-2.2"/>',
+  dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  userplus:'<path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  doc:'<path d="M14 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
+  wallet:'<path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-6"/><path d="M18 12h.01"/>'
+};
+function ic(name,size){
+  size=size||18;
+  return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICON_PATHS[name]+'</svg>';
+}
+
+const BANKS = [
+  {bin:'970436',label:'Vietcombank'},
+  {bin:'970407',label:'Techcombank'},
+  {bin:'970418',label:'BIDV'},
+  {bin:'970405',label:'Agribank'},
+  {bin:'970422',label:'MB Bank'},
+  {bin:'970416',label:'ACB'},
+  {bin:'970432',label:'VPBank'},
+  {bin:'970423',label:'TPBank'},
+  {bin:'970403',label:'Sacombank'},
+  {bin:'970415',label:'VietinBank'},
+  {bin:'970437',label:'HDBank'},
+  {bin:'970443',label:'SHB'},
+  {bin:'970431',label:'Eximbank'},
+  {bin:'970448',label:'OCB'},
+  {bin:'970429',label:'SCB'},
+  {bin:'970426',label:'MSB'}
+];
+const TIME_PRESETS = ['15h00 - 17h00','19h30 - 21h30'];
+const MONTHS_VN = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+const DOW_VN = ['CN','T2','T3','T4','T5','T6','T7'];
+const DOW_FULL = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+
+let state = {
+  students: [],
+  schedule: [],
+  // CẬP NHẬT MẶC ĐỊNH SANG VIETCOMBANK CỦA BẠN
+  bank: { bin:'970436', label:'Vietcombank', accountNumber:'1020262257', accountName:'HOANG ANH TUAN', contentTemplate:'HP {name}' },
+  tab: 'lop',
+  viewingId: null,
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+  loaded: false
+};
+
+async function loadAll(){
+  try{
+    const s = await window.storage.get('students', false);
+    state.students = s && s.value ? JSON.parse(s.value) : seedStudents();
+  }catch(e){ state.students = seedStudents(); }
+  try{
+    const b = await window.storage.get('bank-config', false);
+    if(b && b.value) state.bank = JSON.parse(b.value);
+  }catch(e){ }
+  try{
+    const sc = await window.storage.get('schedule-rules', false);
+    state.schedule = sc && sc.value ? JSON.parse(sc.value) : [];
+  }catch(e){ state.schedule = []; }
+  applyPendingFeeChanges();
+  state.loaded = true;
+  render();
+}
+async function saveStudents(){
+  try{ await window.storage.set('students', JSON.stringify(state.students), false); }
+  catch(e){ toast('Không thể lưu dữ liệu. Thử lại sau.'); }
+}
+async function saveBank(){
+  try{ await window.storage.set('bank-config', JSON.stringify(state.bank), false); }
+  catch(e){ toast('Không thể lưu cấu hình.'); }
+}
+async function saveSchedule(){
+  try{ await window.storage.set('schedule-rules', JSON.stringify(state.schedule), false); }
+  catch(e){ toast('Không thể lưu lịch dạy.'); }
+}
+
+function seedStudents(){
+  const mk = (name, extras, sessions, upcoming) => ({
+    id: uid(), name, status:'active', joinDate:'2026-05-01', feePerSession:120000,
+    upcomingFee: upcoming || null,
+    sessions: (sessions||[]).map(d=>({id:uid(), date:d, timeSlot:'19h30 - 21h30', fee:120000, paymentId:null})),
+    extraItems: (extras||[]).map(x=>({id:uid(), name:x[0], price:x[1], paymentId:null})),
+    paymentHistory:[]
+  });
+  return [
+    mk('Lý Tuấn Kiệt', [], []),
+    mk('Phan Hà My', [], [], {amount:200000, fromDate:'2026-08-13'}),
+    mk('Đỗ Minh Châu', [], ['2026-07-03','2026-07-07','2026-07-10','2026-07-14','2026-07-17'])
+  ];
+}
+
+function uid(){ return 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+function fmt(n){ return (Number(n)||0).toLocaleString('vi-VN')+' đ'; }
+function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function pad(n){ return n<10?'0'+n:''+n; }
+function fmtLong(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  return d.getDate()+' thg '+(d.getMonth()+1)+' năm '+d.getFullYear();
+}
+function fmtShort(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1);
+}
+function removeDiacritics(str){
+  return (str||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D');
+}
+function statusInfo(status){
+  if(status==='paused') return {label:'Tạm nghỉ', cls:'chip-amber'};
+  if(status==='stopped') return {label:'Đã nghỉ', cls:'chip-red'};
+  return {label:'Đang học', cls:'chip-teal'};
+}
+function getStudent(id){ return state.students.find(s=>s.id===id); }
+function pendingSessions(st){ return st.sessions.filter(s=>!s.paymentId).sort((a,b)=>a.date<b.date?1:-1); }
+function pendingExtras(st){ return st.extraItems.filter(e=>!e.paymentId); }
+function effectiveFee(st, dateStr){
+  if(st.upcomingFee && dateStr>=st.upcomingFee.fromDate) return st.upcomingFee.amount;
+  return st.feePerSession;
+}
+function grandTotal(st){
+  const s = pendingSessions(st).reduce((a,x)=>a+x.fee,0);
+  const e = pendingExtras(st).reduce((a,x)=>a+x.price,0);
+  return s+e;
+}
+function dowOf(dateStr){ return new Date(dateStr+'T00:00:00').getDay(); }
+function occurrencesForDate(dateStr){
+  const dow = dowOf(dateStr);
+  return state.schedule.filter(r=>r.active && r.dayOfWeek===dow && dateStr>=r.startDate);
+}
+function sessionsForDateExcludingRules(dateStr, rules){
+  const covered = new Set();
+  rules.forEach(r=>r.studentIds.forEach(id=>covered.add(id)));
+  const list = [];
+  state.students.forEach(st=>{
+    st.sessions.forEach(s=>{
+      if(s.date===dateStr && !covered.has(st.id)) list.push({studentId:st.id, studentName:st.name, session:s});
+    });
+  });
+  return list;
+}
+function toggleAttendance(sid, dateStr, slot){
+  const st = getStudent(sid); if(!st) return;
+  const existing = st.sessions.find(s=>s.date===dateStr);
+  if(existing){ st.sessions = st.sessions.filter(s=>s.id!==existing.id); toast('Đã bỏ điểm danh.'); }
+  else { st.sessions.push({id:uid(), date:dateStr, timeSlot:slot, fee:effectiveFee(st,dateStr), paymentId:null}); toast('Đã điểm danh.'); }
+  saveStudents();
+  render();
+  modalDayDetail(dateStr);
+}
+function applyPendingFeeChanges(){
+  const t = todayStr();
+  let changed=false;
+  state.students.forEach(st=>{
+    if(st.upcomingFee && st.upcomingFee.fromDate<=t){
+      st.feePerSession = st.upcomingFee.amount;
+      st.upcomingFee = null;
+      changed=true;
+    }
+  });
+  if(changed) saveStudents();
+}
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function render(){
+  if(!state.loaded){ document.getElementById('view-root').innerHTML = '<div class="empty-state">Đang tải…</div>'; return; }
+  renderNav();
+  if(state.viewingId){
+    document.getElementById('view-root').innerHTML = renderFeeSlip(state.viewingId);
+  } else {
+    let html = '';
+    if(state.tab==='tongquan') html = renderTongQuan();
+    else if(state.tab==='lich') html = renderLich();
+    else if(state.tab==='lop') html = renderLop();
+    else if(state.tab==='hocphi') html = renderHocPhiTab();
+    else if(state.tab==='khac') html = renderKhac();
+    document.getElementById('view-root').innerHTML = html;
+  }
+}
+function renderNav(){
+  const items = [
+    {id:'tongquan', label:'Tổng quan', icon:'grid'},
+    {id:'lich', label:'Lịch', icon:'calendar'},
+    {id:'lop', label:'Lớp', icon:'book'},
+    {id:'hocphi', label:'Học phí', icon:'coin'},
+    {id:'khac', label:'Khác', icon:'dots'}
+  ];
+  const active = !state.viewingId ? state.tab : '';
+  document.getElementById('bottom-nav').innerHTML = items.map(it=>
+    '<button class="nav-btn'+(active===it.id?' active':'')+'" data-action="go-tab" data-tab="'+it.id+'">'+
+      ic(it.icon,20)+'<span>'+it.label+'</span></button>'
+  ).join('');
+}
+
+function renderLop(){
+  const n = state.students.length;
+  let html = '<div class="topbar"><h1>Học sinh <span class="count-badge">'+n+'</span></h1></div>';
+  html += '<div class="action-row"><button class="btn btn-dark" data-action="open-add-student">'+ic('userplus',16)+' Thêm học sinh</button></div>';
+  html += '<div class="content'+(n>0?' grid-content':'')+'">';
+  if(n===0){
+    html += '<div class="empty-state"><div class="icon-wrap">🎒</div><h3>Chưa có học sinh nào</h3><p>Thêm học sinh đầu tiên để bắt đầu điểm danh và thu học phí.</p></div>';
+  } else {
+    state.students.forEach((st,i)=>{
+      const si = statusInfo(st.status);
+      const extras = pendingExtras(st);
+      html += '<div class="student-card" data-action="open-student" data-id="'+st.id+'">';
+      html += '<div class="sc-head"><div class="sc-name">'+(i+1)+'. '+esc(st.name)+'</div><span class="chip '+si.cls+'">'+si.label+'</span></div>';
+      html += '<div class="sc-row">'+ic('calendar',16)+' Vào lớp: <b>'+fmtLong(st.joinDate)+'</b></div>';
+      html += '<div class="sc-row">'+ic('wallet',16)+' Học phí: <b>'+fmt(st.feePerSession)+' / buổi</b></div>';
+      if(st.upcomingFee){
+        html += '<div class="sc-row warn">'+ic('clock',16)+' Sắp đổi: <b>'+fmt(st.upcomingFee.amount)+'</b> từ '+fmtLong(st.upcomingFee.fromDate)+'</div>';
+      }
+      html += '<div class="sc-doclabel">'+ic('doc',16)+' Tài liệu:</div>';
+      if(extras.length===0){
+        html += '<div class="empty-doc">Chưa có khoản phí nào</div>';
+      } else {
+        extras.forEach(e=>{
+          const free = e.price===0;
+          html += '<div class="doc-line"><span class="doc-price">'+fmt(e.price)+'</span><span class="doc-name">'+esc(e.name)+'</span><span class="chip '+(free?'chip-blue':'chip-amber')+'">'+(free?'Miễn phí':'Chờ thu')+'</span></div>';
+        });
+      }
+      html += '<div class="sc-actions">';
+      html += '<button class="btn btn-outline" data-action="open-student" data-id="'+st.id+'">'+ic('wallet',15)+' Học phí</button>';
+      // SỬA NÚT TÀI LIỆU Ở ĐÂY ĐỂ HIỆN MODAL THÊM PHÍ LUÔN
+      html += '<button class="btn btn-outline" data-action="add-extra" data-id="'+st.id+'">'+ic('doc',15)+' Tài liệu</button>';
+      html += '<button class="btn btn-outline" data-action="edit-student" data-id="'+st.id+'">'+ic('edit',15)+' Sửa</button>';
+      html += '<button class="btn icon-btn" data-action="delete-student" data-id="'+st.id+'">'+ic('trash',16)+'</button>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderTongQuan(){
+  const students = state.students;
+  const active = students.filter(s=>s.status==='active').length;
+  const ym = state.calYear+'-'+pad(state.calMonth+1);
+  let sessionsThisMonth = 0, collectedThisMonth = 0, pendingTotal = 0;
+  const now = new Date(); const curYm = now.getFullYear()+'-'+pad(now.getMonth()+1);
+  students.forEach(st=>{
+    st.sessions.forEach(s=>{ if(s.date.slice(0,7)===curYm) sessionsThisMonth++; });
+    st.paymentHistory.forEach(p=>{ if(p.date.slice(0,7)===curYm) collectedThisMonth += p.amount; });
+    pendingTotal += grandTotal(st);
+  });
+  let html = '<div class="topbar"><h1>Tổng quan</h1></div><div class="content">';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat-card"><div class="val">'+students.length+'</div><div class="lab">Tổng học sinh</div></div>';
+  html += '<div class="stat-card"><div class="val">'+active+'</div><div class="lab">Đang học</div></div>';
+  html += '<div class="stat-card"><div class="val">'+sessionsThisMonth+'</div><div class="lab">Buổi học tháng này</div></div>';
+  html += '<div class="stat-card"><div class="val">'+fmt(collectedThisMonth)+'</div><div class="lab">Đã thu tháng này</div></div>';
+  html += '<div class="stat-card wide"><div><div class="val" style="color:var(--amber)">'+fmt(pendingTotal)+'</div><div class="lab">Tổng học phí chưa thu</div></div>'+ic('coin',30)+'</div>';
+  html += '</div></div>';
+  return html;
+}
+
+function renderHocPhiTab(){
+  let html = '<div class="topbar"><h1>Học phí</h1></div><div class="content'+(state.students.length>0?' grid-content':'')+'">';
+  if(state.students.length===0){
+    html += '<div class="empty-state"><div class="icon-wrap">💰</div><h3>Chưa có dữ liệu</h3><p>Thêm học sinh ở tab Lớp để bắt đầu.</p></div>';
+  } else {
+    const rows = state.students.map(st=>({st, total: grandTotal(st)})).sort((a,b)=>b.total-a.total);
+    rows.forEach(r=>{
+      const st = r.st;
+      const pend = pendingSessions(st).length;
+      html += '<div class="feelist-row" data-action="open-student" data-id="'+st.id+'" style="cursor:pointer">';
+      html += '<div><div class="name">'+esc(st.name)+'</div><div class="sub">'+pend+' buổi chưa thu · '+fmt(st.feePerSession)+'/buổi</div></div>';
+      html += '<div class="amt '+(r.total===0?'zero':'due')+'">'+fmt(r.total)+'</div></div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderLich(){
+  const y = state.calYear, m = state.calMonth;
+  const first = new Date(y,m,1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const t = todayStr();
+  const attendedByDate = {};
+  state.students.forEach(st=>{
+    st.sessions.forEach(s=>{ attendedByDate[s.date] = (attendedByDate[s.date]||0)+1; });
+  });
+  let html = '<div class="topbar"><h1>Lịch</h1></div><div class="content">';
+  html += '<div class="cal-head"><button class="cal-nav" data-action="cal-prev">'+ic('back',16)+'</button>';
+  html += '<div class="m">Tháng '+(m+1)+' / '+y+'</div>';
+  html += '<button class="cal-nav" data-action="cal-next" style="transform:scaleX(-1)">'+ic('back',16)+'</button></div>';
+  html += '<div class="cal-grid">';
+  DOW_VN.forEach(d=> html += '<div class="cal-dow">'+d+'</div>');
+  for(let i=0;i<startDow;i++) html += '<div></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = y+'-'+pad(m+1)+'-'+pad(d);
+    const attended = attendedByDate[dateStr]||0;
+    const scheduled = occurrencesForDate(dateStr).reduce((a,r)=>a+r.studentIds.length,0);
+    const isToday = dateStr===t;
+    let dotHtml = '';
+    if(attended>0) dotHtml = '<span class="cal-dot"></span>';
+    else if(scheduled>0) dotHtml = '<span class="cal-dot sched"></span>';
+    html += '<div class="cal-cell'+(isToday?' today':'')+'" data-action="open-day" data-date="'+dateStr+'">'+d+dotHtml+'</div>';
+  }
+  html += '</div>';
+  html += '<div style="display:flex;gap:18px;justify-content:center;margin-top:16px;font-size:12.5px;color:var(--ink-soft)">'+
+    '<span style="display:flex;align-items:center;gap:6px"><span class="cal-dot" style="margin:0"></span>Đã điểm danh</span>'+
+    '<span style="display:flex;align-items:center;gap:6px"><span class="cal-dot sched" style="margin:0"></span>Có lịch, chưa điểm danh</span>'+
+  '</div>';
+  html += '<p class="hint" style="text-align:center;margin-top:10px">Bấm vào một ngày bất kỳ để xem hoặc thêm lịch dạy cố định cho ngày đó.</p>';
+  html += '</div>';
+  return html;
+}
+
+function renderKhac(){
+  const b = state.bank;
+  let html = '<div class="topbar"><h1>Khác</h1></div><div class="content">';
+  html += '<div class="fs-section"><div class="fs-section-title" style="color:var(--ink-soft)">Cấu hình ngân hàng nhận học phí</div>';
+  html += '<div class="fs-card">';
+  html += '<div class="bank-row"><span class="k">Ngân hàng</span><span class="v">'+esc(b.label)+'</span></div>';
+  html += '<div class="bank-row"><span class="k">Số tài khoản</span><span class="v">'+esc(b.accountNumber||'—')+'</span></div>';
+  html += '<div class="bank-row"><span class="k">Chủ tài khoản</span><span class="v">'+esc(b.accountName||'—')+'</span></div>';
+  html += '<div class="bank-row"><span class="k">Mẫu nội dung CK</span><span class="v">'+esc(b.contentTemplate)+'</span></div>';
+  html += '</div>';
+  html += '<div class="action-row" style="padding:12px 0 0"><button class="btn btn-dark btn-block" data-action="open-bank-settings">'+ic('edit',15)+' Sửa thông tin ngân hàng</button></div>';
+  html += '</div>';
+  html += '<div class="fs-section"><div class="fs-section-title" style="color:var(--red)">Vùng nguy hiểm</div>';
+  html += '<div class="fs-card"><p class="hint" style="margin-bottom:12px">Xoá toàn bộ dữ liệu học sinh, điểm danh và lịch sử thu học phí. Không thể hoàn tác.</p>';
+  html += '<button class="btn btn-danger-outline btn-block" data-action="reset-data">'+ic('trash',15)+' Xoá toàn bộ dữ liệu</button></div></div>';
+  html += '</div>';
+  return html;
+}
+
+function renderFeeSlip(id){
+  const st = getStudent(id);
+  if(!st){ state.viewingId=null; return renderLop(); }
+  const pend = pendingSessions(st);
+  const extras = pendingExtras(st);
+  const sessTotal = pend.reduce((a,x)=>a+x.fee,0);
+  const extraTotal = extras.reduce((a,x)=>a+x.price,0);
+  const total = sessTotal + extraTotal;
+
+  let html = '<div class="fs-topbar">';
+  html += '<button class="fs-back" data-action="back-to-list">'+ic('back',18)+'</button>';
+  html += '<div class="fs-toptitle">Học sinh: '+esc(st.name)+'</div>';
+  html += '</div>';
+  html += '<div class="fs-page">';
+
+  html += '<div class="fs-header-card"><div class="fs-emoji">🎒</div><div>';
+  html += '<div class="fs-h1">Phiếu học phí</div>';
+  html += '<div class="fs-sub">Học sinh '+esc(st.name)+' · '+pend.length+' buổi học và '+extras.length+' tài liệu</div>';
+  html += '</div></div>';
+
+  html += '<div class="fs-section"><div class="fs-section-title">Học phí <button class="round-plus" data-action="add-session" data-id="'+st.id+'">'+ic('plus',15)+'</button></div>';
+  if(pend.length===0){
+    html += '<div class="fs-card"><div class="fs-empty">Chưa điểm danh buổi nào cho đợt này. Nhấn + để thêm buổi học.</div></div>';
+  } else {
+    html += '<div class="fs-card"><div class="fs-fee-row"><span class="left">'+ic('book',16)+' '+pend.length+' buổi × '+fmt(st.feePerSession)+'</span><span class="fs-fee-amount">'+fmt(sessTotal)+'</span></div></div>';
+    html += '<div class="chip-list">';
+    pend.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{
+      html += '<div class="date-chip"><span>'+fmtShort(s.date)+'</span><span class="dc-slot">'+esc(s.timeSlot||'')+'</span>'+
+        '<button data-action="remove-session" data-id="'+st.id+'" data-sid="'+s.id+'">×</button></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  html += '<div class="fs-section"><div class="fs-section-title">Phí khác <button class="round-plus" data-action="add-extra" data-id="'+st.id+'">'+ic('plus',15)+'</button></div>';
+  if(extras.length===0){
+    html += '<div class="fs-card"><div class="fs-empty">Chưa có khoản phí nào. Nhấn + để tự thêm (tài liệu, sách, v.v).</div></div>';
+  } else {
+    extras.forEach(e=>{
+      html += '<div class="fs-card" style="margin-bottom:10px"><div class="fs-fee-row" style="margin-bottom:0"><span class="left">'+ic('doc',16)+' '+esc(e.name)+'</span>'+
+        '<span style="display:flex;align-items:center;gap:8px"><b>'+fmt(e.price)+'</b><button class="fs-row-remove" data-action="remove-extra" data-id="'+st.id+'" data-eid="'+e.id+'">'+ic('x',15)+'</button></span></div></div>';
+    });
+  }
+  html += '</div>';
+
+  if(total===0){
+    html += '<div class="fs-card fs-empty-total">'+ic('coin',26)+'<div style="margin-top:8px">Chưa có khoản thu nào cho đợt này.</div></div>';
+  } else {
+    html += '<div class="fs-total"><span>Tổng cộng</span><b>'+fmt(total)+'</b></div>';
+    const content = (state.bank.contentTemplate||'HP {name}').replace('{name}', removeDiacritics(st.name));
+    const qrUrl = 'https://img.vietqr.io/image/'+state.bank.bin+'-'+encodeURIComponent(state.bank.accountNumber||'0')+'-compact2.png?amount='+total+'&addInfo='+encodeURIComponent(content)+'&accountName='+encodeURIComponent(state.bank.accountName||'');
+    html += '<div class="fs-card fs-qr-card">';
+    html += '<img src="'+qrUrl+'" alt="Mã QR chuyển khoản">';
+    html += '<div class="bank-row"><span class="k">Ngân hàng</span><span class="v">'+esc(state.bank.label)+'</span></div>';
+    html += '<div class="bank-row"><span class="k">Số TK</span><span class="v">'+esc(state.bank.accountNumber||'—')+'</span></div>';
+    html += '<div class="bank-row"><span class="k">Chủ TK</span><span class="v">'+esc(state.bank.accountName||'—')+'</span></div>';
+    html += '<div class="bank-row"><span class="k">Nội dung</span><span class="v">'+esc(content)+'</span></div>';
+    html += '</div>';
+    html += '<button class="btn btn-green btn-block" data-action="confirm-payment" data-id="'+st.id+'">'+ic('check',17)+' Đã nhận học phí</button>';
+  }
+
+  html += '<div class="history-row">';
+  html += '<button class="btn btn-outline" data-action="open-attendance-history" data-id="'+st.id+'">'+ic('clock',15)+' Lịch sử học</button>';
+  html += '<button class="btn btn-outline" data-action="open-payment-history" data-id="'+st.id+'">'+ic('card',15)+' Lịch sử chuyển khoản</button>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function openModal(html){
+  document.getElementById('modal-box').innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal-backdrop').classList.remove('show');
+  document.getElementById('modal-box').innerHTML = '';
+}
+
+function modalAddStudent(){
+  openModal(
+    '<div class="modal-title">Thêm học sinh <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<form id="form-add-student">'+
+      '<div class="form-field"><label>Họ và tên</label><input type="text" name="name" required autofocus></div>'+
+      '<div class="form-field"><label>Ngày vào lớp</label><input type="date" name="joinDate" value="'+todayStr()+'" required></div>'+
+      '<div class="form-field"><label>Học phí / buổi (đ)</label><input type="number" name="fee" value="120000" min="0" step="1000" required></div>'+
+      '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Thêm học sinh</button></div>'+
+    '</form>'
+  );
+  document.getElementById('form-add-student').addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(e.target);
+    state.students.push({
+      id: uid(), name: f.get('name').trim(), status:'active',
+      joinDate: f.get('joinDate'), feePerSession: Number(f.get('fee'))||0,
+      upcomingFee: null, sessions:[], extraItems:[], paymentHistory:[]
+    });
+    saveStudents(); closeModal(); render(); toast('Đã thêm học sinh mới.');
+  });
+}
+
+function modalEditStudent(id){
+  const st = getStudent(id); if(!st) return;
+  openModal(
+    '<div class="modal-title">Sửa thông tin <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<form id="form-edit-student">'+
+      '<div class="form-field"><label>Họ và tên</label><input type="text" name="name" value="'+esc(st.name)+'" required></div>'+
+      '<div class="form-field"><label>Trạng thái</label><select name="status">'+
+        '<option value="active"'+(st.status==='active'?' selected':'')+'>Đang học</option>'+
+        '<option value="paused"'+(st.status==='paused'?' selected':'')+'>Tạm nghỉ</option>'+
+        '<option value="stopped"'+(st.status==='stopped'?' selected':'')+'>Đã nghỉ</option>'+
+      '</select></div>'+
+      '<div class="form-field"><label>Ngày vào lớp</label><input type="date" name="joinDate" value="'+esc(st.joinDate)+'" required></div>'+
+      '<div class="form-field"><label>Học phí / buổi (đ)</label><input type="number" name="fee" value="'+st.feePerSession+'" min="0" step="1000" required></div>'+
+      '<label class="checkbox-row"><input type="checkbox" id="chk-upcoming" '+(st.upcomingFee?'checked':'')+'> Sắp đổi học phí</label>'+
+      '<div id="upcoming-fields" style="'+(st.upcomingFee?'':'display:none')+'">'+
+        '<div class="form-field"><label>Học phí mới (đ)</label><input type="number" name="newFee" value="'+(st.upcomingFee?st.upcomingFee.amount:st.feePerSession)+'" min="0" step="1000"></div>'+
+        '<div class="form-field"><label>Áp dụng từ ngày</label><input type="date" name="fromDate" value="'+(st.upcomingFee?st.upcomingFee.fromDate:todayStr())+'"></div>'+
+      '</div>'+
+      '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Lưu thay đổi</button></div>'+
+    '</form>'
+  );
+  document.getElementById('chk-upcoming').addEventListener('change', function(e){
+    document.getElementById('upcoming-fields').style.display = e.target.checked ? '' : 'none';
+  });
+  document.getElementById('form-edit-student').addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(e.target);
+    st.name = f.get('name').trim();
+    st.status = f.get('status');
+    st.joinDate = f.get('joinDate');
+    st.feePerSession = Number(f.get('fee'))||0;
+    if(document.getElementById('chk-upcoming').checked){
+      st.upcomingFee = { amount: Number(f.get('newFee'))||0, fromDate: f.get('fromDate') };
+    } else {
+      st.upcomingFee = null;
+    }
+    saveStudents(); closeModal(); render(); toast('Đã lưu thay đổi.');
+  });
+}
+
+function modalDeleteStudent(id){
+  const st = getStudent(id); if(!st) return;
+  openModal(
+    '<div class="modal-title">Xoá học sinh <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<div class="confirm-text">Bạn có chắc muốn xoá <b>'+esc(st.name)+'</b>? Toàn bộ điểm danh và lịch sử thu học phí của học sinh này sẽ bị xoá vĩnh viễn.</div>'+
+    '<div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Huỷ</button>'+
+    '<button class="btn btn-danger-outline" data-action="do-delete-student" data-id="'+id+'">Xoá vĩnh viễn</button></div>'
+  );
+}
+
+function modalAddSession(id){
+  const st = getStudent(id); if(!st) return;
+  openModal(
+    '<div class="modal-title">Thêm buổi học <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<form id="form-add-session">'+
+      '<div class="form-field"><label>Ngày học</label><input type="date" name="date" value="'+todayStr()+'" required></div>'+
+      '<div class="form-field"><label>Khung giờ</label>'+
+        '<div class="slot-options">'+
+          TIME_PRESETS.map(p=>'<button type="button" class="slot-opt" data-slot="'+esc(p)+'">'+esc(p)+'</button>').join('')+
+        '</div>'+
+        '<input type="text" name="timeSlot" placeholder="Hoặc nhập khung giờ khác…">'+
+      '</div>'+
+      '<div class="hint">Học phí buổi này: <b id="fee-preview">'+fmt(st.feePerSession)+'</b></div>'+
+      '<div class="modal-actions" style="margin-top:14px"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Điểm danh</button></div>'+
+    '</form>'
+  );
+  const form = document.getElementById('form-add-session');
+  const slotInput = form.querySelector('input[name=timeSlot]');
+  const dateInput = form.querySelector('input[name=date]');
+  const feePrev = document.getElementById('fee-preview');
+  function updatePreview(){ feePrev.textContent = fmt(effectiveFee(st, dateInput.value || todayStr())); }
+  dateInput.addEventListener('change', updatePreview);
+  form.querySelectorAll('.slot-opt').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      form.querySelectorAll('.slot-opt').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      slotInput.value = btn.getAttribute('data-slot');
+    });
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(form);
+    const date = f.get('date');
+    st.sessions.push({ id: uid(), date, timeSlot: (f.get('timeSlot')||'').trim(), fee: effectiveFee(st,date), paymentId:null });
+    saveStudents(); closeModal(); render(); toast('Đã điểm danh buổi học.');
+  });
+}
+
+function modalAddExtra(id){
+  const st = getStudent(id); if(!st) return;
+  openModal(
+    '<div class="modal-title">Thêm khoản phí <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<form id="form-add-extra">'+
+      '<div class="form-field"><label>Tên khoản phí</label><input type="text" name="name" placeholder="Ví dụ: Tài liệu cơ bản" required autofocus></div>'+
+      '<div class="form-field"><label>Số tiền (đ)</label><input type="number" name="price" value="0" min="0" step="1000" required></div>'+
+      '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Thêm</button></div>'+
+    '</form>'
+  );
+  document.getElementById('form-add-extra').addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(e.target);
+    st.extraItems.push({ id: uid(), name: f.get('name').trim(), price: Number(f.get('price'))||0, paymentId:null });
+    saveStudents(); closeModal(); render(); toast('Đã thêm khoản phí.');
+  });
+}
+
+function modalConfirmPayment(id){
+  const st = getStudent(id); if(!st) return;
+  const total = grandTotal(st);
+  openModal(
+    '<div class="modal-title">Xác nhận thu học phí <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<div class="confirm-text">Xác nhận đã nhận <b>'+fmt(total)+'</b> từ phụ huynh bé <b>'+esc(st.name)+'</b>? Đợt học mới sẽ được bắt đầu.</div>'+
+    '<div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Chưa nhận</button>'+
+    '<button class="btn btn-green" data-action="do-confirm-payment" data-id="'+id+'">Xác nhận đã nhận</button></div>'
+  );
+}
+
+function modalAttendanceHistory(id){
+  const st = getStudent(id); if(!st) return;
+  const all = st.sessions.slice().sort((a,b)=>a.date<b.date?1:-1);
+  let html = '<div class="modal-title">Lịch sử học · '+esc(st.name)+' <button data-action="close-modal">'+ic('x',16)+'</button></div>';
+  if(all.length===0){
+    html += '<div class="fs-empty">Chưa có buổi học nào được ghi nhận.</div>';
+  } else {
+    all.forEach(s=>{
+      const paid = !!s.paymentId;
+      html += '<div class="hist-item"><div><div class="hd">'+fmtLong(s.date)+'</div><div class="hs">'+esc(s.timeSlot||'—')+'</div></div>'+
+        '<div style="text-align:right"><div class="hv">'+fmt(s.fee)+'</div><span class="chip '+(paid?'chip-teal':'chip-amber')+'" style="margin-top:4px;display:inline-block">'+(paid?'Đã thu':'Chờ thu')+'</span></div></div>';
+    });
+  }
+  openModal(html);
+}
+
+function modalPaymentHistory(id){
+  const st = getStudent(id); if(!st) return;
+  const all = st.paymentHistory.slice().sort((a,b)=>a.date<b.date?1:-1);
+  let html = '<div class="modal-title">Lịch sử chuyển khoản · '+esc(st.name)+' <button data-action="close-modal">'+ic('x',16)+'</button></div>';
+  if(all.length===0){
+    html += '<div class="fs-empty">Chưa có lần thu học phí nào.</div>';
+  } else {
+    all.forEach(p=>{
+      html += '<div class="hist-item"><div><div class="hd">'+fmtLong(p.date)+'</div><div class="hs">'+p.sessionsCount+' buổi học'+(p.extrasCount?(' · '+p.extrasCount+' khoản phí'):'')+'</div></div>'+
+        '<div class="hv" style="color:var(--green-deep)">'+fmt(p.amount)+'</div></div>';
+    });
+  }
+  openModal(html);
+}
+
+function modalBankSettings(){
+  const b = state.bank;
+  openModal(
+    '<div class="modal-title">Thông tin ngân hàng <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<form id="form-bank">'+
+      '<div class="form-field"><label>Ngân hàng</label><select name="bin">'+
+        BANKS.map(bk=>'<option value="'+bk.bin+'"'+(bk.bin===b.bin?' selected':'')+'>'+bk.label+'</option>').join('')+
+      '</select></div>'+
+      '<div class="form-field"><label>Số tài khoản</label><input type="text" name="accountNumber" value="'+esc(b.accountNumber)+'" required></div>'+
+      '<div class="form-field"><label>Tên chủ tài khoản</label><input type="text" name="accountName" value="'+esc(b.accountName)+'" placeholder="VD: LE DUY LINH" required></div>'+
+      '<div class="form-field"><label>Mẫu nội dung chuyển khoản</label><input type="text" name="contentTemplate" value="'+esc(b.contentTemplate)+'"><div class="hint">Dùng {name} để chèn tên học sinh (không dấu).</div></div>'+
+      '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Lưu</button></div>'+
+    '</form>'
+  );
+  document.getElementById('form-bank').addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const bin = f.get('bin');
+    const bankObj = BANKS.find(x=>x.bin===bin);
+    state.bank = {
+      bin, label: bankObj?bankObj.label:'', accountNumber: f.get('accountNumber').trim(),
+      accountName: f.get('accountName').trim().toUpperCase(), contentTemplate: f.get('contentTemplate').trim() || 'HP {name}'
+    };
+    saveBank(); closeModal(); render(); toast('Đã lưu thông tin ngân hàng.');
+  });
+}
+
+function modalResetData(){
+  openModal(
+    '<div class="modal-title">Xoá toàn bộ dữ liệu <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
+    '<div class="confirm-text">Toàn bộ học sinh, điểm danh và lịch sử thu học phí sẽ bị xoá vĩnh viễn và không thể khôi phục. Bạn có chắc chắn?</div>'+
+    '<div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Huỷ</button><button class="btn btn-danger-outline" data-action="do-reset-data">Xoá tất cả</button></div>'
+  );
+}
+
+function modalDayDetail(dateStr){
+  const rules = occurrencesForDate(dateStr);
+  const dow = dowOf(dateStr);
+  let html = '<div class="modal-title">'+fmtLong(dateStr)+' <button data-action="close-modal">'+ic('x',16)+'</button></div>';
+  html += '<div class="hint" style="margin-bottom:14px">'+DOW_FULL[dow]+' · lịch dạy dưới đây sẽ tự lặp lại vào mỗi '+DOW_FULL[dow]+' hàng tuần.</div>';
+  html += '<div class="fs-section-title" style="color:var(--ink-soft);margin-bottom:10px">Lịch dạy cố định</div>';
+  if(rules.length===0){
+    html += '<div class="fs-card" style="margin-bottom:14px"><div class="fs-empty">Chưa có lịch dạy cố định cho ngày này.</div></div>';
+  } else {
+    rules.forEach(r=>{
+      html += '<div class="fs-card" style="margin-bottom:12px">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+      html += '<div style="font-weight:800;font-size:14.5px;display:flex;align-items:center;gap:7px">'+ic('clock',15)+esc(r.timeSlot)+'</div>';
+      html += '<button class="fs-row-remove" data-action="remove-schedule-rule" data-rid="'+r.id+'" data-date="'+dateStr+'">'+ic('trash',15)+'</button>';
+      html += '</div>';
+      if(r.studentIds.length===0){ html += '<div class="fs-empty">Chưa gán học sinh.</div>'; }
+      r.studentIds.forEach(sid=>{
+        const st = getStudent(sid);
+        if(!st) return;
+        const existing = st.sessions.find(s=>s.date===dateStr);
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px dashed var(--line)">';
+        html += '<span style="font-size:14px;font-weight:600">'+esc(st.name)+'</span>';
+        if(existing){
+          html += '<button class="btn btn-sm" style="background:var(--teal-bg);color:var(--teal)" data-action="toggle-attendance" data-sid="'+sid+'" data-date="'+dateStr+'" data-slot="'+esc(r.timeSlot)+'">'+ic('check',13)+' Đã điểm danh</button>';
+        } else {
+          html += '<button class="btn btn-sm btn-outline" data-action="toggle-attendance" data-sid="'+sid+'" data-date="'+dateStr+'" data-slot="'+esc(r.timeSlot)+'">Điểm danh</button>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+  }
+  const others = sessionsForDateExcludingRules(dateStr, rules);
+  if(others.length>0){
+    html += '<div class="fs-section-title" style="color:var(--ink-soft);margin:16px 0 10px">Buổi học khác (ngoài lịch cố định)</div>';
+    others.forEach(o=>{
+      html += '<div class="fs-card" style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<div><div style="font-weight:700;font-size:14px">'+esc(o.studentName)+'</div><div class="hs" style="font-size:12.5px;color:var(--ink-soft)">'+esc(o.session.timeSlot||'—')+'</div></div>'+
+        '<button class="fs-row-remove" data-action="remove-adhoc-session" data-sid="'+o.studentId+'" data-sessid="'+o.session.id+'" data-date="'+dateStr+'">'+ic('x',15)+'</button></div></div>';
+    });
+  }
+  html += '<button class="btn btn-dark btn-block" data-action="open-add-schedule" data-date="'+dateStr+'">'+ic('plus',15)+' Thêm lịch dạy</button>';
+  openModal(html);
+}
+
+function modalAddSchedule(dateStr){
+  const dow = dowOf(dateStr);
+  let html = '<div class="modal-title">Thêm lịch dạy <button data-action="close-modal">'+ic('x',16)+'</button></div>';
+  html += '<div class="hint" style="margin-bottom:14px">Áp dụng cho '+DOW_FULL[dow]+' hàng tuần, bắt đầu từ '+fmtLong(dateStr)+' (tự lặp lại các tuần sau).</div>';
+  html += '<form id="form-add-schedule">';
+  html += '<div class="form-field"><label>Khung giờ dạy</label>'+
+    '<div class="slot-options">'+TIME_PRESETS.map(p=>'<button type="button" class="slot-opt" data-slot="'+esc(p)+'">'+esc(p)+'</button>').join('')+'</div>'+
+    '<input type="text" name="timeSlot" placeholder="Hoặc nhập khung giờ khác… VD: 14h00 - 16h00" required></div>';
+  html += '<div class="form-field"><label>Học sinh</label>';
+  if(state.students.length===0){
+    html += '<div class="hint">Chưa có học sinh nào. Hãy thêm học sinh ở tab Lớp trước.</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:9px;max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:#FAF8F3">';
+    state.students.forEach(st=>{
+      html += '<label class="checkbox-row" style="margin-bottom:0"><input type="checkbox" name="student" value="'+st.id+'"> '+esc(st.name)+'</label>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  html += '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Lưu lịch dạy</button></div>';
+  html += '</form>';
+  openModal(html);
+
+  const form = document.getElementById('form-add-schedule');
+  const slotInput = form.querySelector('input[name=timeSlot]');
+  form.querySelectorAll('.slot-opt').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      form.querySelectorAll('.slot-opt').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      slotInput.value = btn.getAttribute('data-slot');
+    });
+  });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(form);
+    const timeSlot = (f.get('timeSlot')||'').trim();
+    const studentIds = f.getAll('student');
+    if(studentIds.length===0){ toast('Chọn ít nhất một học sinh.'); return; }
+    state.schedule.push({ id: uid(), dayOfWeek: dow, timeSlot, studentIds, startDate: dateStr, active:true });
+    saveSchedule();
+    render();
+    toast('Đã thêm lịch dạy, sẽ lặp lại hàng tuần.');
+    modalDayDetail(dateStr);
+  });
+}
+
+document.addEventListener('click', function(e){
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.getAttribute('data-action');
+  const id = t.getAttribute('data-id');
+
+  if(action==='go-tab'){ state.tab = t.getAttribute('data-tab'); state.viewingId=null; render(); return; }
+  if(action==='open-student'){ state.viewingId = id; render(); window.scrollTo(0,0); return; }
+  if(action==='back-to-list'){ state.viewingId = null; render(); return; }
+  if(action==='open-add-student'){ modalAddStudent(); return; }
+  if(action==='edit-student'){ e.stopPropagation(); modalEditStudent(id); return; }
+  if(action==='delete-student'){ e.stopPropagation(); modalDeleteStudent(id); return; }
+  if(action==='do-delete-student'){
+    state.students = state.students.filter(s=>s.id!==id);
+    saveStudents(); closeModal(); if(state.viewingId===id) state.viewingId=null; render(); toast('Đã xoá học sinh.');
+    return;
+  }
+  if(action==='add-session'){ modalAddSession(id); return; }
+  if(action==='remove-session'){
+    const sid = t.getAttribute('data-sid');
+    const st = getStudent(id);
+    st.sessions = st.sessions.filter(s=>s.id!==sid);
+    saveStudents(); render(); toast('Đã bỏ buổi học.');
+    return;
+  }
+  if(action==='add-extra'){ 
+    // SỬA LỖI: NẾU Ở MÀN HÌNH NGOÀI THÌ CHỈ HIỆN MODAL, NẾU TRONG THÌ HIỆN BÌNH THƯỜNG
+    e.stopPropagation(); 
+    modalAddExtra(id); 
+    return; 
+  }
+  if(action==='remove-extra'){
+    const eid = t.getAttribute('data-eid');
+    const st = getStudent(id);
+    st.extraItems = st.extraItems.filter(x=>x.id!==eid);
+    saveStudents(); render(); toast('Đã xoá khoản phí.');
+    return;
+  }
+  if(action==='confirm-payment'){ modalConfirmPayment(id); return; }
+  if(action==='do-confirm-payment'){
+    const st = getStudent(id);
+    const pend = pendingSessions(st);
+    const extras = pendingExtras(st);
+    const total = grandTotal(st);
+    const pid = uid();
+    pend.forEach(s=>{ s.paymentId = pid; });
+    extras.forEach(x=>{ x.paymentId = pid; });
+    st.paymentHistory.push({ id: pid, date: todayStr(), amount: total, sessionsCount: pend.length, extrasCount: extras.length });
+    saveStudents(); closeModal(); render(); toast('Đã ghi nhận thanh toán. Bắt đầu đợt học mới!');
+    return;
+  }
+  if(action==='open-attendance-history'){ modalAttendanceHistory(id); return; }
+  if(action==='open-payment-history'){ modalPaymentHistory(id); return; }
+  if(action==='open-bank-settings'){ modalBankSettings(); return; }
+  if(action==='reset-data'){ modalResetData(); return; }
+  if(action==='do-reset-data'){
+    state.students = [];
+    saveStudents(); closeModal(); state.viewingId=null; render(); toast('Đã xoá toàn bộ dữ liệu.');
+    return;
+  }
+  if(action==='close-modal'){ closeModal(); return; }
+  if(action==='cal-prev'){
+    state.calMonth--; if(state.calMonth<0){ state.calMonth=11; state.calYear--; } render(); return;
+  }
+  if(action==='cal-next'){
+    state.calMonth++; if(state.calMonth>11){ state.calMonth=0; state.calYear++; } render(); return;
+  }
+  if(action==='open-day'){ modalDayDetail(t.getAttribute('data-date')); return; }
+  if(action==='open-add-schedule'){ modalAddSchedule(t.getAttribute('data-date')); return; }
+  if(action==='toggle-attendance'){
+    toggleAttendance(t.getAttribute('data-sid'), t.getAttribute('data-date'), t.getAttribute('data-slot'));
+    return;
+  }
+  if(action==='remove-schedule-rule'){
+    const rid = t.getAttribute('data-rid'); const dstr = t.getAttribute('data-date');
+    if(!confirm('Xoá lịch dạy cố định này?')) return;
+    state.schedule = state.schedule.filter(r=>r.id!==rid);
+    saveSchedule(); render(); modalDayDetail(dstr);
+    return;
+  }
+  if(action==='remove-adhoc-session'){
+    const sid = t.getAttribute('data-sid'), sessid = t.getAttribute('data-sessid'), dstr = t.getAttribute('data-date');
+    const st = getStudent(sid);
+    if(st){ st.sessions = st.sessions.filter(s=>s.id!==sessid); saveStudents(); }
+    render(); modalDayDetail(dstr);
+    return;
+  }
+});
+document.getElementById('modal-backdrop').addEventListener('click', function(e){
+  if(e.target.id==='modal-backdrop') closeModal();
+});
+
+loadAll();
+})();
+</script>
+</body>
+</html>
