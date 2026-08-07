@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Điểm danh">
+<meta name="theme-color" content="#0E9C8C">
 <title>Điểm danh & Học phí</title>
 <style>
   :root{
@@ -889,7 +894,7 @@ function modalConfirmPayment(id){
   const total = grandTotal(st);
   openModal(
     '<div class="modal-title">Xác nhận thu học phí <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
-    '<div class="confirm-text">Xác nhận đã nhận <b>'+fmt(total)+'</b> từ phụ huynh bé <b>'+esc(st.name)+'</b>? Đợt học mới sẽ được bắt đầu.</div>'+
+    '<div class="confirm-text">Xác nhận đã nhận <b>'+fmt(total)+'</b> từ phụ huynh học sinh <b>'+esc(st.name)+'</b>? Đợt học mới sẽ được bắt đầu.</div>'+
     '<div class="modal-actions"><button class="btn btn-outline" data-action="close-modal">Chưa nhận</button>'+
     '<button class="btn btn-green" data-action="do-confirm-payment" data-id="'+id+'">Xác nhận đã nhận</button></div>'
   );
