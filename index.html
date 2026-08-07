@@ -51,12 +51,15 @@
   @media (min-width:760px){
     #app-shell{ border-left:1px solid var(--line); border-right:1px solid var(--line); }
   }
+  /* wide screens: let list tabs use the extra width with a card grid */
   @media (min-width:760px){
     .grid-content{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; align-items:start; }
     .grid-content .student-card, .grid-content .feelist-row{ margin-bottom:0; }
   }
+  /* the fee-slip / receipt view always reads best as a single narrow column, even on wide screens */
   .fs-topbar, .fs-page{ max-width:600px; margin-left:auto; margin-right:auto; }
 
+  /* ---------- top header ---------- */
   .topbar{
     display:flex;align-items:center;justify-content:space-between;
     padding:22px 20px 12px;
@@ -83,9 +86,11 @@
   .btn-ghost{background:transparent;color:var(--ink-soft);}
   .action-row{display:flex;gap:10px;padding:0 20px 8px;flex-wrap:wrap;}
 
+  /* ---------- content scroll area ---------- */
   .content{padding:4px 20px 24px;}
   .section-gap{height:14px;}
 
+  /* ---------- student card ---------- */
   .student-card{
     background:var(--card);border-radius:var(--radius);padding:20px;
     box-shadow:var(--shadow);margin-bottom:16px;cursor:pointer;
@@ -113,6 +118,7 @@
   .icon-btn{width:40px;flex:0 0 40px !important;padding:0 !important;background:var(--red-bg);color:var(--red);}
   .empty-doc{font-size:13.5px;color:var(--ink-faint);padding-left:27px;font-style:italic;}
 
+  /* ---------- empty state ---------- */
   .empty-state{
     text-align:center;padding:60px 20px;color:var(--ink-soft);
   }
@@ -120,12 +126,14 @@
   .empty-state h3{margin:0 0 6px;color:var(--ink);}
   .empty-state p{margin:0 0 18px;font-size:14px;}
 
+  /* ---------- stat cards (tổng quan) ---------- */
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .stat-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line);}
   .stat-card .val{font-size:22px;font-weight:800;}
   .stat-card .lab{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
   .stat-card.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;}
 
+  /* ---------- fee list tab ---------- */
   .feelist-row{
     background:var(--card);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);
     display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border:1px solid var(--line);
@@ -136,6 +144,7 @@
   .feelist-row .amt.zero{color:var(--ink-faint);font-weight:600;}
   .feelist-row .amt.due{color:var(--amber);}
 
+  /* ---------- bottom nav ---------- */
   .bottom-nav{
     position:fixed;left:50%;bottom:0;transform:translateX(-50%);
     width:100%;max-width:var(--shell-max);
@@ -151,6 +160,7 @@
   }
   .nav-btn.active{color:var(--teal);}
 
+  /* ---------- fee slip (detail) page ---------- */
   .fs-topbar{display:flex;align-items:center;gap:10px;padding:18px 16px 6px;}
   .fs-back{background:#fff;border:1px solid var(--line);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex:0 0 auto;}
   .fs-topbar .fs-toptitle{font-weight:800;font-size:16px;flex:1;}
@@ -201,6 +211,7 @@
   .history-row{display:flex;gap:10px;margin-top:16px;}
   .history-row .btn{flex:1;justify-content:center;}
 
+  /* ---------- modal ---------- */
   #modal-backdrop{
     position:fixed;inset:0;background:rgba(20,22,28,0.5);display:none;
     align-items:flex-end;justify-content:center;z-index:100;
@@ -231,12 +242,14 @@
   .modal-actions .btn{flex:1;justify-content:center;}
   .confirm-text{font-size:14.5px;color:var(--ink-soft);margin-bottom:18px;line-height:1.5;}
 
+  /* history list */
   .hist-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
   .hist-item:last-child{border-bottom:none;}
   .hist-item .hd{font-weight:700;font-size:14.5px;}
   .hist-item .hs{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
   .hist-item .hv{font-weight:800;font-size:14.5px;}
 
+  /* calendar */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
   .cal-head .m{font-weight:800;font-size:17px;}
   .cal-nav{background:#fff;border:1px solid var(--line);width:34px;height:34px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);}
@@ -248,6 +261,7 @@
   .cal-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:3px;}
   .cal-dot.sched{background:var(--blue);}
 
+  /* toast */
   #toast{
     position:fixed;left:50%;bottom:100px;transform:translate(-50%,20px);
     background:var(--navy);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:600;
@@ -267,10 +281,41 @@
 <div id="modal-backdrop"><div class="modal-box" id="modal-box"></div></div>
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ====== Kết nối Supabase — thay cho lưu trữ tạm của Claude ====== */
+(function(){
+  const SUPABASE_URL = 'https://seltbjjzztdxxvcoeuii.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_5wcNSufbMEQp62gaYT6Dag_-_jeup2S';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  window.storage = {
+    async get(key, shared){
+      const { data, error } = await sb.from('app_data').select('value').eq('key', key).maybeSingle();
+      if(error) throw error;
+      if(!data) return null;
+      return { key, value: JSON.stringify(data.value), shared: !!shared };
+    },
+    async set(key, value, shared){
+      const parsed = JSON.parse(value);
+      const { error } = await sb.from('app_data').upsert({ key, value: parsed, updated_at: new Date().toISOString() });
+      if(error) throw error;
+      return { key, value, shared: !!shared };
+    },
+    async delete(key, shared){
+      const { error } = await sb.from('app_data').delete().eq('key', key);
+      if(error) throw error;
+      return { key, deleted:true, shared: !!shared };
+    }
+  };
+})();
+</script>
+
 <script>
 (function(){
 "use strict";
 
+/* ============ ICONS ============ */
 const ICON_PATHS = {
   plus:'<path d="M12 5v14M5 12h14"/>',
   x:'<path d="M18 6 6 18M6 6l12 12"/>',
@@ -294,6 +339,7 @@ function ic(name,size){
   return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICON_PATHS[name]+'</svg>';
 }
 
+/* ============ BANKS (VietQR BIN codes) ============ */
 const BANKS = [
   {bin:'970436',label:'Vietcombank'},
   {bin:'970407',label:'Techcombank'},
@@ -317,11 +363,11 @@ const MONTHS_VN = ['1','2','3','4','5','6','7','8','9','10','11','12'];
 const DOW_VN = ['CN','T2','T3','T4','T5','T6','T7'];
 const DOW_FULL = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 
+/* ============ STATE ============ */
 let state = {
   students: [],
-  schedule: [],
-  // CẬP NHẬT MẶC ĐỊNH SANG VIETCOMBANK CỦA BẠN
-  bank: { bin:'970436', label:'Vietcombank', accountNumber:'1020262257', accountName:'HOANG ANH TUAN', contentTemplate:'HP {name}' },
+  schedule: [], // recurring weekly teaching slots: {id, dayOfWeek, timeSlot, studentIds[], startDate, active}
+  bank: { bin:'970407', label:'Techcombank', accountNumber:'', accountName:'', contentTemplate:'HP {name}' },
   tab: 'lop',
   viewingId: null,
   calYear: new Date().getFullYear(),
@@ -329,6 +375,7 @@ let state = {
   loaded: false
 };
 
+/* ============ STORAGE ============ */
 async function loadAll(){
   try{
     const s = await window.storage.get('students', false);
@@ -337,7 +384,7 @@ async function loadAll(){
   try{
     const b = await window.storage.get('bank-config', false);
     if(b && b.value) state.bank = JSON.parse(b.value);
-  }catch(e){ }
+  }catch(e){ /* keep default */ }
   try{
     const sc = await window.storage.get('schedule-rules', false);
     state.schedule = sc && sc.value ? JSON.parse(sc.value) : [];
@@ -374,6 +421,7 @@ function seedStudents(){
   ];
 }
 
+/* ============ UTIL ============ */
 function uid(){ return 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function fmt(n){ return (Number(n)||0).toLocaleString('vi-VN')+' đ'; }
 function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
@@ -454,6 +502,7 @@ function toast(msg){
 }
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+/* ============ RENDER DISPATCH ============ */
 function render(){
   if(!state.loaded){ document.getElementById('view-root').innerHTML = '<div class="empty-state">Đang tải…</div>'; return; }
   renderNav();
@@ -484,6 +533,7 @@ function renderNav(){
   ).join('');
 }
 
+/* ============ TAB: LỚP ============ */
 function renderLop(){
   const n = state.students.length;
   let html = '<div class="topbar"><h1>Học sinh <span class="count-badge">'+n+'</span></h1></div>';
@@ -513,8 +563,7 @@ function renderLop(){
       }
       html += '<div class="sc-actions">';
       html += '<button class="btn btn-outline" data-action="open-student" data-id="'+st.id+'">'+ic('wallet',15)+' Học phí</button>';
-      // SỬA NÚT TÀI LIỆU Ở ĐÂY ĐỂ HIỆN MODAL THÊM PHÍ LUÔN
-      html += '<button class="btn btn-outline" data-action="add-extra" data-id="'+st.id+'">'+ic('doc',15)+' Tài liệu</button>';
+      html += '<button class="btn btn-outline" data-action="open-student" data-id="'+st.id+'">'+ic('doc',15)+' Tài liệu</button>';
       html += '<button class="btn btn-outline" data-action="edit-student" data-id="'+st.id+'">'+ic('edit',15)+' Sửa</button>';
       html += '<button class="btn icon-btn" data-action="delete-student" data-id="'+st.id+'">'+ic('trash',16)+'</button>';
       html += '</div></div>';
@@ -524,6 +573,7 @@ function renderLop(){
   return html;
 }
 
+/* ============ TAB: TỔNG QUAN ============ */
 function renderTongQuan(){
   const students = state.students;
   const active = students.filter(s=>s.status==='active').length;
@@ -546,6 +596,7 @@ function renderTongQuan(){
   return html;
 }
 
+/* ============ TAB: HỌC PHÍ ============ */
 function renderHocPhiTab(){
   let html = '<div class="topbar"><h1>Học phí</h1></div><div class="content'+(state.students.length>0?' grid-content':'')+'">';
   if(state.students.length===0){
@@ -564,6 +615,7 @@ function renderHocPhiTab(){
   return html;
 }
 
+/* ============ TAB: LỊCH ============ */
 function renderLich(){
   const y = state.calYear, m = state.calMonth;
   const first = new Date(y,m,1);
@@ -601,6 +653,7 @@ function renderLich(){
   return html;
 }
 
+/* ============ TAB: KHÁC ============ */
 function renderKhac(){
   const b = state.bank;
   let html = '<div class="topbar"><h1>Khác</h1></div><div class="content">';
@@ -620,6 +673,7 @@ function renderKhac(){
   return html;
 }
 
+/* ============ FEE SLIP (student detail) ============ */
 function renderFeeSlip(id){
   const st = getStudent(id);
   if(!st){ state.viewingId=null; return renderLop(); }
@@ -637,9 +691,10 @@ function renderFeeSlip(id){
 
   html += '<div class="fs-header-card"><div class="fs-emoji">🎒</div><div>';
   html += '<div class="fs-h1">Phiếu học phí</div>';
-  html += '<div class="fs-sub">Học sinh '+esc(st.name)+' · '+pend.length+' buổi học và '+extras.length+' tài liệu</div>';
+  html += '<div class="fs-sub">Bé '+esc(st.name)+' · '+pend.length+' buổi học và '+extras.length+' tài liệu</div>';
   html += '</div></div>';
 
+  // Học phí section
   html += '<div class="fs-section"><div class="fs-section-title">Học phí <button class="round-plus" data-action="add-session" data-id="'+st.id+'">'+ic('plus',15)+'</button></div>';
   if(pend.length===0){
     html += '<div class="fs-card"><div class="fs-empty">Chưa điểm danh buổi nào cho đợt này. Nhấn + để thêm buổi học.</div></div>';
@@ -654,6 +709,7 @@ function renderFeeSlip(id){
   }
   html += '</div>';
 
+  // Phí khác section
   html += '<div class="fs-section"><div class="fs-section-title">Phí khác <button class="round-plus" data-action="add-extra" data-id="'+st.id+'">'+ic('plus',15)+'</button></div>';
   if(extras.length===0){
     html += '<div class="fs-card"><div class="fs-empty">Chưa có khoản phí nào. Nhấn + để tự thêm (tài liệu, sách, v.v).</div></div>';
@@ -690,6 +746,7 @@ function renderFeeSlip(id){
   return html;
 }
 
+/* ============ MODALS ============ */
 function openModal(html){
   document.getElementById('modal-box').innerHTML = html;
   document.getElementById('modal-backdrop').classList.add('show');
@@ -995,6 +1052,7 @@ function modalAddSchedule(dateStr){
   });
 }
 
+/* ============ EVENT DELEGATION ============ */
 document.addEventListener('click', function(e){
   const t = e.target.closest('[data-action]');
   if(!t) return;
@@ -1020,12 +1078,7 @@ document.addEventListener('click', function(e){
     saveStudents(); render(); toast('Đã bỏ buổi học.');
     return;
   }
-  if(action==='add-extra'){ 
-    // SỬA LỖI: NẾU Ở MÀN HÌNH NGOÀI THÌ CHỈ HIỆN MODAL, NẾU TRONG THÌ HIỆN BÌNH THƯỜNG
-    e.stopPropagation(); 
-    modalAddExtra(id); 
-    return; 
-  }
+  if(action==='add-extra'){ modalAddExtra(id); return; }
   if(action==='remove-extra'){
     const eid = t.getAttribute('data-eid');
     const st = getStudent(id);
@@ -1070,7 +1123,7 @@ document.addEventListener('click', function(e){
   }
   if(action==='remove-schedule-rule'){
     const rid = t.getAttribute('data-rid'); const dstr = t.getAttribute('data-date');
-    if(!confirm('Xoá lịch dạy cố định này?')) return;
+    if(!confirm('Xoá lịch dạy cố định này? Áp dụng cho tất cả các tuần sau. Các buổi đã điểm danh trước đó vẫn được giữ nguyên.')) return;
     state.schedule = state.schedule.filter(r=>r.id!==rid);
     saveSchedule(); render(); modalDayDetail(dstr);
     return;
@@ -1087,6 +1140,7 @@ document.getElementById('modal-backdrop').addEventListener('click', function(e){
   if(e.target.id==='modal-backdrop') closeModal();
 });
 
+/* ============ INIT ============ */
 loadAll();
 })();
 </script>
