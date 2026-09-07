@@ -276,6 +276,26 @@
   #toast.show{opacity:1;transform:translate(-50%,0);}
 
   .kv-mini{font-size:12.5px;color:var(--ink-soft);}
+
+  /* ---------- year stats ---------- */
+  .stats-year-head{display:flex;align-items:center;justify-content:center;gap:14px;margin:22px 0 14px;}
+  .stats-year-head .y{font-weight:800;font-size:16px;min-width:70px;text-align:center;}
+  .stats-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .chart-card{background:var(--card);border-radius:16px;padding:18px 16px 14px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:16px;}
+  .chart-card .ct{font-weight:800;font-size:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+  .chart-card .ct .ct-sub{font-weight:600;font-size:11.5px;color:var(--ink-soft);text-transform:none;letter-spacing:0;}
+  .barrow{display:flex;align-items:flex-end;gap:5px;height:130px;}
+  .barcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;}
+  .barcol .bv{font-size:9.5px;font-weight:700;color:var(--ink-soft);margin-bottom:3px;white-space:nowrap;}
+  .barcol .bar{width:60%;border-radius:5px 5px 2px 2px;background:var(--teal);min-height:3px;transition:height .25s ease;}
+  .barcol.best .bar{background:linear-gradient(180deg,var(--green),var(--green-deep));}
+  .barcol .bl{font-size:10px;color:var(--ink-faint);margin-top:6px;font-weight:700;}
+  .month-detail-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .month-detail-row:last-child{border-bottom:none;}
+  .month-detail-row .md-name{font-weight:700;width:56px;flex:0 0 56px;}
+  .month-detail-row .md-mid{flex:1;color:var(--ink-soft);font-size:12px;}
+  .month-detail-row .md-val{font-weight:800;text-align:right;white-space:nowrap;}
+  .month-detail-row.best{background:var(--teal-bg);margin:0 -16px;padding:11px 16px;border-radius:10px;border-bottom:none;}
 </style>
 </head>
 <body>
@@ -377,6 +397,8 @@ let state = {
   viewingId: null,
   calYear: new Date().getFullYear(),
   calMonth: new Date().getMonth(),
+  statsYear: new Date().getFullYear(),
+  manualIncome: {}, // { "2026": [thang1,...,thang12] } — thu nhập nhập tay để cộng vào tháng, dùng cho các tháng chưa theo dõi qua app
   loaded: false
 };
 
@@ -394,6 +416,19 @@ async function loadAll(){
     const sc = await window.storage.get('schedule-rules', false);
     state.schedule = sc && sc.value ? JSON.parse(sc.value) : [];
   }catch(e){ state.schedule = []; }
+  try{
+    const mi = await window.storage.get('manual-income', false);
+    if(mi && mi.value){
+      state.manualIncome = JSON.parse(mi.value);
+    } else {
+      // Chưa có dữ liệu — khởi tạo với tháng 8/2026 = 9.350.000đ theo yêu cầu, rồi lưu lại ngay
+      state.manualIncome = { '2026': [0,0,0,0,0,0,0,9350000,0,0,0,0] };
+      saveManualIncome();
+    }
+  }catch(e){
+    state.manualIncome = { '2026': [0,0,0,0,0,0,0,9350000,0,0,0,0] };
+    saveManualIncome();
+  }
   applyPendingFeeChanges();
   state.loaded = true;
   render();
@@ -410,6 +445,10 @@ async function saveSchedule(){
   try{ await window.storage.set('schedule-rules', JSON.stringify(state.schedule), false); }
   catch(e){ toast('Không thể lưu lịch dạy.'); }
 }
+async function saveManualIncome(){
+  try{ await window.storage.set('manual-income', JSON.stringify(state.manualIncome), false); }
+  catch(e){ toast('Không thể lưu thu nhập nhập tay.'); }
+}
 
 function seedStudents(){
   const mk = (name, extras, sessions, upcoming) => ({
@@ -422,7 +461,7 @@ function seedStudents(){
   return [
     mk('Lý Tuấn Kiệt', [], []),
     mk('Phan Hà My', [], [], {amount:200000, fromDate:'2026-08-13'}),
-    mk('Đỗ Minh Châu', [], ['2026-07-03','2026-07-07','2026-07-10','2026-07-14','2026-07-17'])
+    mk('Đỗ Minh Châu', [], [])
   ];
 }
 
@@ -579,12 +618,61 @@ function renderLop(){
 }
 
 /* ============ TAB: TỔNG QUAN ============ */
+function computeYearStats(year){
+  const months = Array.from({length:12}, (_,i)=>({ month:i, sessionsCount:0, taughtValue:0, autoCollected:0, manualAmount:0, collectedAmount:0 }));
+  state.students.forEach(st=>{
+    st.sessions.forEach(s=>{
+      if(s.date && s.date.slice(0,4)===String(year)){
+        const mi = Number(s.date.slice(5,7))-1;
+        if(mi>=0 && mi<12){ months[mi].sessionsCount++; months[mi].taughtValue += s.fee; }
+      }
+    });
+    st.paymentHistory.forEach(p=>{
+      if(p.date && p.date.slice(0,4)===String(year)){
+        const mi = Number(p.date.slice(5,7))-1;
+        if(mi>=0 && mi<12){ months[mi].autoCollected += p.amount; }
+      }
+    });
+  });
+  const manualArr = (state.manualIncome && state.manualIncome[String(year)]) || [];
+  months.forEach((m,i)=>{
+    m.manualAmount = Number(manualArr[i])||0;
+    m.collectedAmount = m.autoCollected + m.manualAmount;
+  });
+  const totalSessions = months.reduce((a,m)=>a+m.sessionsCount,0);
+  const totalTaught = months.reduce((a,m)=>a+m.taughtValue,0);
+  const totalCollected = months.reduce((a,m)=>a+m.collectedAmount,0);
+  const totalManual = months.reduce((a,m)=>a+m.manualAmount,0);
+  let bestSessionsMonth = 0, bestCollectedMonth = 0;
+  months.forEach((m,i)=>{
+    if(m.sessionsCount>months[bestSessionsMonth].sessionsCount) bestSessionsMonth=i;
+    if(m.collectedAmount>months[bestCollectedMonth].collectedAmount) bestCollectedMonth=i;
+  });
+  return { year, months, totalSessions, totalTaught, totalCollected, totalManual, bestSessionsMonth, bestCollectedMonth };
+}
+function renderBarChart(months, key, bestIdx){
+  const max = Math.max(1, ...months.map(m=>m[key]));
+  let html = '<div class="barrow">';
+  months.forEach((m,i)=>{
+    const v = m[key];
+    const pct = v>0 ? Math.max(6, Math.round(v/max*100)) : 3;
+    const isBest = i===bestIdx && v>0;
+    const label = v<=0 ? '' : (key==='sessionsCount' ? String(v) : (Math.round(v/1000).toLocaleString('vi-VN')+'k'));
+    html += '<div class="barcol'+(isBest?' best':'')+'">';
+    html += '<div class="bv">'+label+'</div>';
+    html += '<div class="bar" style="height:'+pct+'%"></div>';
+    html += '<div class="bl">T'+(i+1)+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
 function renderTongQuan(){
   const students = state.students;
   const active = students.filter(s=>s.status==='active').length;
-  const ym = state.calYear+'-'+pad(state.calMonth+1);
-  let sessionsThisMonth = 0, collectedThisMonth = 0, pendingTotal = 0;
+  let pendingTotal = 0;
   const now = new Date(); const curYm = now.getFullYear()+'-'+pad(now.getMonth()+1);
+  let sessionsThisMonth = 0, collectedThisMonth = 0;
   students.forEach(st=>{
     st.sessions.forEach(s=>{ if(s.date.slice(0,7)===curYm) sessionsThisMonth++; });
     st.paymentHistory.forEach(p=>{ if(p.date.slice(0,7)===curYm) collectedThisMonth += p.amount; });
@@ -597,7 +685,49 @@ function renderTongQuan(){
   html += '<div class="stat-card"><div class="val">'+sessionsThisMonth+'</div><div class="lab">Buổi học tháng này</div></div>';
   html += '<div class="stat-card"><div class="val">'+fmt(collectedThisMonth)+'</div><div class="lab">Đã thu tháng này</div></div>';
   html += '<div class="stat-card wide"><div><div class="val" style="color:var(--amber)">'+fmt(pendingTotal)+'</div><div class="lab">Tổng học phí chưa thu</div></div>'+ic('coin',30)+'</div>';
-  html += '</div></div>';
+  html += '</div>';
+
+  /* ---- Thống kê theo năm ---- */
+  const ys = computeYearStats(state.statsYear);
+  html += '<div class="stats-year-head"><button class="cal-nav" data-action="stats-prev-year">'+ic('back',16)+'</button>'+
+    '<div class="y">Năm '+state.statsYear+'</div>'+
+    '<button class="cal-nav" data-action="stats-next-year" style="transform:scaleX(-1)">'+ic('back',16)+'</button></div>';
+
+  html += '<div style="text-align:center;margin-bottom:16px"><button class="btn btn-outline btn-sm" data-action="open-manual-income">'+ic('edit',13)+' Nhập thu nhập tháng cũ / điều chỉnh</button></div>';
+
+  html += '<div class="stats-summary">';
+  html += '<div class="stat-card"><div class="val">'+ys.totalSessions+'</div><div class="lab">Tổng buổi dạy trong năm</div></div>';
+  html += '<div class="stat-card"><div class="val" style="color:var(--green-deep)">'+fmt(ys.totalCollected)+'</div><div class="lab">Tổng đã thu trong năm</div></div>';
+  html += '<div class="stat-card"><div class="val">'+fmt(ys.totalTaught)+'</div><div class="lab">Giá trị buổi đã dạy</div></div>';
+  const bestCount = ys.months[ys.bestSessionsMonth].sessionsCount;
+  html += '<div class="stat-card"><div class="val" style="color:var(--teal)">'+(bestCount>0?'Tháng '+(ys.bestSessionsMonth+1):'—')+'</div><div class="lab">Dạy nhiều buổi nhất'+(bestCount>0?' ('+bestCount+' buổi)':'')+'</div></div>';
+  html += '</div>';
+
+  html += '<div class="chart-card"><div class="ct"><span>Số buổi dạy theo tháng</span><span class="ct-sub">buổi</span></div>';
+  html += renderBarChart(ys.months, 'sessionsCount', ys.bestSessionsMonth);
+  html += '</div>';
+
+  html += '<div class="chart-card"><div class="ct"><span>Học phí đã thu theo tháng</span><span class="ct-sub">nghìn đồng</span></div>';
+  html += renderBarChart(ys.months, 'collectedAmount', ys.bestCollectedMonth);
+  html += '</div>';
+
+  const anyData = ys.months.some(m=>m.sessionsCount>0||m.collectedAmount>0);
+  html += '<div class="chart-card"><div class="ct"><span>Chi tiết từng tháng</span></div>';
+  if(!anyData){
+    html += '<div class="fs-empty">Chưa có dữ liệu cho năm này.</div>';
+  } else {
+    ys.months.forEach((m,i)=>{
+      if(m.sessionsCount===0 && m.collectedAmount===0) return;
+      const isBest = i===ys.bestSessionsMonth && m.sessionsCount>0;
+      const manualNote = m.manualAmount>0 ? ' · '+fmt(m.manualAmount)+' nhập tay' : '';
+      html += '<div class="month-detail-row'+(isBest?' best':'')+'"><div class="md-name">Tháng '+(i+1)+'</div>'+
+        '<div class="md-mid">'+m.sessionsCount+' buổi · dạy '+fmt(m.taughtValue)+manualNote+'</div>'+
+        '<div class="md-val" style="color:var(--green-deep)">'+fmt(m.collectedAmount)+'</div></div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div>';
   return html;
 }
 
@@ -958,6 +1088,29 @@ function modalBankSettings(){
   });
 }
 
+function modalManualIncome(year){
+  const arr = (state.manualIncome && state.manualIncome[String(year)]) || [];
+  let html = '<div class="modal-title">Thu nhập nhập tay — Năm '+year+' <button data-action="close-modal">'+ic('x',16)+'</button></div>';
+  html += '<div class="hint" style="margin-bottom:14px">Dùng để cộng thêm vào cột "Đã thu" cho những tháng bạn chưa dùng app để điểm danh/thu tiền, hoặc để điều chỉnh cho khớp thực tế. Bỏ trống hoặc để 0 nếu không cần.</div>';
+  html += '<form id="form-manual-income">';
+  for(let i=0;i<12;i++){
+    const val = Number(arr[i])||0;
+    html += '<div class="form-field"><label>Tháng '+(i+1)+'</label><input type="number" name="m'+i+'" value="'+(val?val:'')+'" min="0" step="1000" placeholder="0"></div>';
+  }
+  html += '<div class="modal-actions"><button type="button" class="btn btn-outline" data-action="close-modal">Huỷ</button><button type="submit" class="btn btn-dark">Lưu</button></div>';
+  html += '</form>';
+  openModal(html);
+  document.getElementById('form-manual-income').addEventListener('submit', function(e){
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const newArr = [];
+    for(let i=0;i<12;i++){ newArr.push(Number(f.get('m'+i))||0); }
+    if(!state.manualIncome) state.manualIncome = {};
+    state.manualIncome[String(year)] = newArr;
+    saveManualIncome(); closeModal(); render(); toast('Đã lưu thu nhập nhập tay.');
+  });
+}
+
 function modalResetData(){
   openModal(
     '<div class="modal-title">Xoá toàn bộ dữ liệu <button data-action="close-modal">'+ic('x',16)+'</button></div>'+
@@ -1120,6 +1273,9 @@ document.addEventListener('click', function(e){
   if(action==='cal-next'){
     state.calMonth++; if(state.calMonth>11){ state.calMonth=0; state.calYear++; } render(); return;
   }
+  if(action==='stats-prev-year'){ state.statsYear--; render(); return; }
+  if(action==='stats-next-year'){ state.statsYear++; render(); return; }
+  if(action==='open-manual-income'){ modalManualIncome(state.statsYear); return; }
   if(action==='open-day'){ modalDayDetail(t.getAttribute('data-date')); return; }
   if(action==='open-add-schedule'){ modalAddSchedule(t.getAttribute('data-date')); return; }
   if(action==='toggle-attendance'){
