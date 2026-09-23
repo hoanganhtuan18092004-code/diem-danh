@@ -387,6 +387,10 @@ const TIME_PRESETS = ['15h00 - 17h00','19h30 - 21h30'];
 const MONTHS_VN = ['1','2','3','4','5','6','7','8','9','10','11','12'];
 const DOW_VN = ['CN','T2','T3','T4','T5','T6','T7'];
 const DOW_FULL = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+const TIMELINE_DOW_ORDER = [1,2,3,4,5,6,0]; // Thứ 2 -> Chủ nhật
+const TIMELINE_DOW_LABELS = ['T2','T3','T4','T5','T6','T7','CN'];
+const TIMELINE_SLOT_MIN = 30;
+const STUDENT_COLORS = ['#0E9C8C','#2B63E0','#B97A0E','#DC3A3A','#7C5CFC','#12A66B','#E0592B','#0EA5C9','#C2410C','#9333EA','#DB2777','#4B5563'];
 
 /* ============ STATE ============ */
 let state = {
@@ -556,6 +560,7 @@ function render(){
     let html = '';
     if(state.tab==='tongquan') html = renderTongQuan();
     else if(state.tab==='lich') html = renderLich();
+    else if(state.tab==='timeline') html = renderTimeline();
     else if(state.tab==='lop') html = renderLop();
     else if(state.tab==='hocphi') html = renderHocPhiTab();
     else if(state.tab==='khac') html = renderKhac();
@@ -566,6 +571,7 @@ function renderNav(){
   const items = [
     {id:'tongquan', label:'Tổng quan', icon:'grid'},
     {id:'lich', label:'Lịch', icon:'calendar'},
+    {id:'timeline', label:'Timeline', icon:'clock'},
     {id:'lop', label:'Lớp', icon:'book'},
     {id:'hocphi', label:'Học phí', icon:'coin'},
     {id:'khac', label:'Khác', icon:'dots'}
@@ -746,6 +752,129 @@ function renderHocPhiTab(){
       html += '<div class="amt '+(r.total===0?'zero':'due')+'">'+fmt(r.total)+'</div></div>';
     });
   }
+  html += '</div>';
+  return html;
+}
+
+/* ============ TAB: TIMELINE ============ */
+function studentColorHex(studentId){
+  const idx = state.students.findIndex(s=>s.id===studentId);
+  return STUDENT_COLORS[(idx<0?0:idx) % STUDENT_COLORS.length];
+}
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
+function parseTimeToMinutes(str){
+  if(!str) return null;
+  const s = str.trim();
+  let m = s.match(/^(\d{1,2})h(\d{1,2})?$/i);
+  if(m) return parseInt(m[1],10)*60 + (m[2]?parseInt(m[2],10):0);
+  m = s.match(/^(\d{1,2}):(\d{2})$/);
+  if(m) return parseInt(m[1],10)*60 + parseInt(m[2],10);
+  m = s.match(/^(\d{1,2})$/);
+  if(m) return parseInt(m[1],10)*60;
+  return null;
+}
+function parseTimeRange(timeSlot){
+  if(!timeSlot) return null;
+  const idx = timeSlot.indexOf('-');
+  if(idx<0) return null;
+  const start = parseTimeToMinutes(timeSlot.slice(0,idx));
+  const end = parseTimeToMinutes(timeSlot.slice(idx+1));
+  if(start==null || end==null || end<=start) return null;
+  return {start, end};
+}
+function nextDateForDow(dow){
+  const d = new Date();
+  const cur = d.getDay();
+  let diff = dow - cur; if(diff<0) diff+=7;
+  d.setDate(d.getDate()+diff);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function renderTimeline(){
+  const rules = state.schedule.filter(r=>r.active);
+  const parsed = [];
+  let unparsedCount = 0;
+  rules.forEach(r=>{
+    const range = parseTimeRange(r.timeSlot);
+    if(!range){ unparsedCount++; return; }
+    parsed.push({ rule:r, start:range.start, end:range.end });
+  });
+  let minStart = 7*60, maxEnd = 22*60;
+  parsed.forEach(p=>{
+    minStart = Math.min(minStart, Math.floor(p.start/60)*60);
+    maxEnd = Math.max(maxEnd, Math.ceil(p.end/60)*60);
+  });
+  const totalSlots = Math.round((maxEnd-minStart)/TIMELINE_SLOT_MIN);
+  const slotH = 26;
+  const colH = totalSlots*slotH;
+
+  let html = '<div class="topbar"><h1>Timeline tuần</h1></div>';
+  html += '<div class="content">';
+  html += '<p class="hint" style="margin-bottom:14px">Lịch dạy cố định trong tuần theo khung giờ. Bấm vào một cột ngày để xem, thêm hoặc sửa lịch dạy hôm đó.</p>';
+
+  if(unparsedCount>0){
+    html += '<div class="fs-card" style="margin-bottom:14px;background:var(--amber-bg);border-color:transparent"><span style="color:var(--amber);font-size:13px;font-weight:700">'+unparsedCount+' lịch dạy có khung giờ không nhận diện được nên chưa hiển thị ở đây (vẫn xem được ở tab Lịch).</span></div>';
+  }
+
+  const activeStudentIds = [];
+  const seen = new Set();
+  parsed.forEach(p=>p.rule.studentIds.forEach(id=>{ if(!seen.has(id)){ seen.add(id); activeStudentIds.push(id); } }));
+  if(activeStudentIds.length>0){
+    html += '<div style="display:flex;flex-wrap:wrap;gap:10px 16px;margin-bottom:16px">';
+    activeStudentIds.forEach(id=>{
+      const st = getStudent(id); if(!st) return;
+      const color = studentColorHex(id);
+      html += '<div style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-soft)"><span style="width:10px;height:10px;border-radius:3px;background:'+color+';display:inline-block;flex:0 0 auto"></span>'+esc(st.name)+'</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px">';
+  html += '<div style="display:flex;min-width:640px">';
+
+  html += '<div style="flex:0 0 34px;padding-top:34px">';
+  for(let i=0;i<totalSlots;i++){
+    const mins = minStart + i*TIMELINE_SLOT_MIN;
+    const isHour = mins%60===0;
+    html += '<div style="height:'+slotH+'px;position:relative">'+
+      (isHour ? '<span style="position:absolute;top:-6px;right:4px;font-size:10px;font-weight:700;color:var(--ink-faint)">'+Math.floor(mins/60)+'h</span>' : '')+
+    '</div>';
+  }
+  html += '</div>';
+
+  TIMELINE_DOW_ORDER.forEach((dow,ci)=>{
+    html += '<div style="flex:1;min-width:78px" data-action="timeline-open-day" data-dow="'+dow+'">';
+    html += '<div style="height:34px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;color:var(--ink)">'+TIMELINE_DOW_LABELS[ci]+'</div>';
+    html += '<div style="position:relative;height:'+colH+'px;border-left:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;cursor:pointer">';
+    for(let i=0;i<totalSlots;i++){
+      const mins = minStart+i*TIMELINE_SLOT_MIN;
+      const isHour = mins%60===0;
+      html += '<div style="position:absolute;left:0;right:0;top:'+(i*slotH)+'px;height:'+slotH+'px;border-bottom:1px solid '+(isHour?'var(--line)':'rgba(236,231,220,0.6)')+'"></div>';
+    }
+    const dayBlocks = parsed.filter(p=>p.rule.dayOfWeek===dow);
+    dayBlocks.forEach(p=>{
+      const top = ((p.start-minStart)/TIMELINE_SLOT_MIN)*slotH;
+      const height = Math.max(slotH-2, ((p.end-p.start)/TIMELINE_SLOT_MIN)*slotH - 2);
+      const ids = p.rule.studentIds.length ? p.rule.studentIds : [null];
+      const w = 100/ids.length;
+      ids.forEach((sid,idx)=>{
+        const st = sid?getStudent(sid):null;
+        const color = sid?studentColorHex(sid):'#A7ACB6';
+        const name = st?st.name:'?';
+        html += '<div style="position:absolute;top:'+top+'px;height:'+height+'px;left:calc('+(idx*w)+'% + 1px);width:calc('+w+'% - 2px);background:'+hexToRgba(color,0.88)+';border-radius:5px;padding:2px 4px;overflow:hidden;box-sizing:border-box">'+
+          '<span style="font-size:9.5px;font-weight:700;color:#fff;line-height:1.15;display:block;word-break:break-word">'+esc(name)+'</span></div>';
+      });
+    });
+    html += '</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  html += '</div>';
+
   html += '</div>';
   return html;
 }
@@ -1277,6 +1406,7 @@ document.addEventListener('click', function(e){
   if(action==='stats-next-year'){ state.statsYear++; render(); return; }
   if(action==='open-manual-income'){ modalManualIncome(state.statsYear); return; }
   if(action==='open-day'){ modalDayDetail(t.getAttribute('data-date')); return; }
+  if(action==='timeline-open-day'){ modalDayDetail(nextDateForDow(Number(t.getAttribute('data-dow')))); return; }
   if(action==='open-add-schedule'){ modalAddSchedule(t.getAttribute('data-date')); return; }
   if(action==='toggle-attendance'){
     toggleAttendance(t.getAttribute('data-sid'), t.getAttribute('data-date'), t.getAttribute('data-slot'));
